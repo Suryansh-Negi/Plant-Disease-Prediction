@@ -1,0 +1,19 @@
+# JavaScript dependencies and build output
+**/node_modules/
+**/build/
+**/dist/
+**/.cache/
+
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Large local training dataset
+/PlantVillage/

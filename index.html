@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plant Disease Prediction</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f0f4f8;
+      }
+      h1 {
+        color: #2e8b57;
+      }
+      input,
+      button {
+        margin: 10px 0;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 10px;
+        background: #fff;
+        border: 1px solid #ccc;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Plant Disease Prediction</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <br />
+    <button onclick="predictDisease()">Predict</button>
+
+    <div id="result"></div>
+
+    <script>
+      async function predictDisease() {
+        const imageInput = document.getElementById("imageInput");
+        const file = imageInput.files[0];
+        if (!file) {
+          alert("Please select an image.");
+          return;
+        }
+
+        const formData = new FormData();
+        // send under the key 'file' to match Flask
+        formData.append("file", file);
+
+        try {
+          const response = await fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            body: formData,
+          });
+
+          // If server responded 400+, throw to catch block
+          if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.error || `Server returned ${response.status}`);
+          }
+
+          const data = await response.json();
+          console.log("Response from API:", data);
+
+          document.getElementById("result").innerHTML = `<h2>Prediction: ${
+            data.predicted_class
+          }</h2>
+           <p>Confidence: ${(data.confidence * 100).toFixed(2)}%</p>`;
+        } catch (error) {
+          console.error("Error occurred:", error);
+          document.getElementById(
+            "result"
+          ).innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Flask Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Flask API Upload</h1>
+        <p>This page directly tests the Flask API without using the Node.js backend</p>
+        
+        <div>
+            <input type="file" id="imageFile" accept="image/*">
+            <div id="preview"></div>
+            <button onclick="uploadImage()">Upload & Predict</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Preview the selected image
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    
+                    const preview = document.getElementById('preview');
+                    preview.innerHTML = '';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Upload and get prediction
+        function uploadImage() {
+            const file = document.getElementById('imageFile').files[0];
+            if (!file) {
+                alert('Please select an image first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Processing...';
+            resultDiv.style.display = 'block';
+
+            fetch('http://localhost:5000/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                
+                let resultHTML = `
+                    <h3>Prediction: ${data.predicted_class}</h3>
+                    <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(2)}%</p>
+                    <p><strong>Definition:</strong> ${data.definition}</p>
+                    <p><strong>Cause:</strong> ${data.cause}</p>
+                    <p><strong>Remedy:</strong> ${data.remedy}</p>
+                `;
+                
+                resultDiv.innerHTML = resultHTML;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+            });
+        }
+    </script>
+</body>
+</html> 
